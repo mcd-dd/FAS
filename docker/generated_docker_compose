@@ -1,0 +1,103 @@
+version: "3.9"
+
+services:
+
+  # -------------------------
+  # Infrastructure
+  # -------------------------
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  redis:
+    image: redis:7
+    restart: always
+
+  # -------------------------
+  # Backend API
+  # -------------------------
+
+  api:
+    image: fas-backend
+    build: ./backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    environment:
+      DATABASE_URL: sqlite:////data/dev.db
+      KAFKA_BOOTSTRAP: kafka:9092
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./data:/data
+    depends_on:
+      - kafka
+      - redis
+
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  mqtt-worker:
+    build: ./backend
+    command: python -m app.mqtt_worker
+    environment:
+      MQTT_BROKER: 80.225.236.160
+      MQTT_PORT: 1883
+      KAFKA_BOOTSTRAP: kafka:9092
+    depends_on:
+      - kafka
+
+  alarm-consumer:
+    build: ./backend
+    command: python -m app.alarm_consumer
+    environment:
+      DATABASE_URL: sqlite:////data/dev.db
+      KAFKA_BOOTSTRAP: kafka:9092
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./data:/data
+    depends_on:
+      - kafka
+      - redis
+
+  sensor-consumer:
+    build: ./backend
+    command: python -m app.sensor_consumer
+    environment:
+      DATABASE_URL: sqlite:////data/dev.db
+      KAFKA_BOOTSTRAP: kafka:9092
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./data:/data
+    depends_on:
+      - kafka
+      - redis
+
+  # -------------------------
+  # Frontend
+  # -------------------------
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api

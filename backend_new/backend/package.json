@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.1"
+  },
+  "dependencies": {
+    "react-leaflet-cluster": "^4.0.0"
+  }
+}

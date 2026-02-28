@@ -1,0 +1,209 @@
+Install Node + Expo CLI
+
+npm install -g expo-cli
+
+
+Create App
+
+npx create-expo-app higird-mobile
+cd higird-mobile
+
+Choose: Blank (JavaScript)
+
+
+Install Navigation
+
+npm install @react-navigation/native
+npm install react-native-screens react-native-safe-area-context
+npm install @react-navigation/native-stack
+npm install axios
+
+
+Folder Structure
+
+higird-mobile/
+│
+├── App.js
+├── api.js
+└── screens/
+      LoginScreen.js
+      SignupScreen.js
+      DashboardScreen.js
+      RechargeScreen.js
+      ProfileScreen.js
+
+
+api.js
+
+	import axios from "axios";
+
+	const BASE = "http://YOUR_PC_IP:8000"; // ⚠️ Replace with your backend IP  "http://192.168.1.20:8000"
+
+	export const api = axios.create({
+	  baseURL: `${BASE}/api/v1`,
+	});
+
+
+App.js Navigation
+
+	import React from "react";
+	import { NavigationContainer } from "@react-navigation/native";
+	import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
+	import Login from "./screens/LoginScreen";
+	import Signup from "./screens/SignupScreen";
+	import Dashboard from "./screens/DashboardScreen";
+	import Recharge from "./screens/RechargeScreen";
+	import Profile from "./screens/ProfileScreen";
+
+	const Stack = createNativeStackNavigator();
+
+	export default function App() {
+	  return (
+	    <NavigationContainer>
+	      <Stack.Navigator screenOptions={{ headerShown: false }}>
+		<Stack.Screen name="Login" component={Login} />
+		<Stack.Screen name="Signup" component={Signup} />
+		<Stack.Screen name="Dashboard" component={Dashboard} />
+		<Stack.Screen name="Recharge" component={Recharge} />
+		<Stack.Screen name="Profile" component={Profile} />
+	      </Stack.Navigator>
+	    </NavigationContainer>
+	  );
+	}
+
+screens/LoginScreen.js
+
+	import React, { useState } from "react";
+	import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+	import { api } from "../api";
+
+	export default function LoginScreen({ navigation }) {
+	  const [username, setUsername] = useState("");
+	  const [password, setPassword] = useState("");
+
+	  async function handleLogin() {
+	    try {
+	      const res = await api.post("/users/login", {
+		username,
+		password,
+	      });
+
+	      navigation.replace("Dashboard", { user: res.data });
+	    } catch {
+	      alert("Invalid credentials");
+	    }
+	  }
+
+	  return (
+	    <View style={styles.container}>
+	      <Text style={styles.title}>HiGrid</Text>
+
+	      <TextInput
+		placeholder="Username"
+		style={styles.input}
+		onChangeText={setUsername}
+	      />
+
+	      <TextInput
+		placeholder="Password"
+		secureTextEntry
+		style={styles.input}
+		onChangeText={setPassword}
+	      />
+
+	      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+		<Text style={{ color: "#fff" }}>Login</Text>
+	      </TouchableOpacity>
+
+	      <Text
+		style={styles.link}
+		onPress={() => navigation.navigate("Signup")}
+	      >
+		Create Account
+	      </Text>
+	    </View>
+	  );
+	}
+
+	const styles = StyleSheet.create({
+	  container: { flex: 1, justifyContent: "center", padding: 20 },
+	  title: { fontSize: 28, textAlign: "center", marginBottom: 20 },
+	  input: {
+	    borderWidth: 1,
+	    padding: 12,
+	    marginBottom: 12,
+	    borderRadius: 8
+	  },
+	  button: {
+	    backgroundColor: "#2563eb",
+	    padding: 14,
+	    alignItems: "center",
+	    borderRadius: 8
+	  },
+	  link: {
+	    marginTop: 20,
+	    textAlign: "center",
+	    color: "#2563eb"
+	  }
+	});
+
+
+PART 6 — Build APK (Android)
+
+Install EAS CLI
+
+	npm install -g eas-cli
+
+Login:  
+	eas login
+
+
+Configure Build
+
+Inside project: 
+
+	eas build:configure
+
+Choose:
+
+	Android
+
+
+Build APK
+
+	For testing:
+
+		eas build -p android --profile preview
+
+
+Build iOS
+	
+	eas build -p ios
+
+
+If your backend runs locally:
+
+	uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+	Allow firewall.
+
+		http://192.168.1.20:8000
+
+
+🔥 How Mobile App Calls Backend APIs
+
+Step 1 — Backend must run like this:
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+Step 2 — Use PC IP
+
+Example:
+
+http://192.168.1.20:8000
+
+Step 3 — Axios automatically adds:
+
+session-id: <your session>
+
+Because of interceptor.

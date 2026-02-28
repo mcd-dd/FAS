@@ -1,0 +1,112 @@
+version: "3.9"
+
+services:
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: fas
+      POSTGRES_PASSWORD: faspass
+      POSTGRES_DB: fasdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    restart: always
+
+  api:
+    build: ./backend_new/backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    environment:
+      DATABASE_URL: postgresql://fas:faspass@postgres:5432/fasdb
+      KAFKA_BOOTSTRAP: kafka:9092
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  mqtt-worker:
+    build: ./backend_new/backend
+    command: python -m app.mqtt_worker
+    environment:
+      DATABASE_URL: postgresql://fas:faspass@postgres:5432/fasdb
+      MQTT_BROKER: 80.225.236.160
+      MQTT_PORT: 1883
+      KAFKA_BOOTSTRAP: kafka:9092
+    depends_on:
+      postgres:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+
+  alarm-consumer:
+    build: ./backend_new/backend
+    command: python -m app.alarm_consumer
+    environment:
+      DATABASE_URL: postgresql://fas:faspass@postgres:5432/fasdb
+      KAFKA_BOOTSTRAP: kafka:9092
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  sensor-consumer:
+    build: ./backend_new/backend
+    command: python -m app.sensor_consumer
+    environment:
+      DATABASE_URL: postgresql://fas:faspass@postgres:5432/fasdb
+      KAFKA_BOOTSTRAP: kafka:9092
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_started
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  frontend:
+    build: ./frontend_new/frontend/fire-dashboard
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:

@@ -1,0 +1,108 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - api
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "bash", "-c", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  redis:
+    image: redis:7
+    # ports:
+    #   - "6379:6379"
+    restart: always
+
+  api:
+    build: .
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    # ports:
+    #   - "8000:8000"
+    environment:
+      DATABASE_URL: sqlite:////data/dev.db
+      KAFKA_BOOTSTRAP: kafka:9092
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./data:/data
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # mosquitto:
+  #   image: eclipse-mosquitto
+  #   ports:
+  #     - "1883:1883"
+  #   volumes:
+  #     - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  mqtt-worker:
+    build: .
+    command: python -m app.mqtt_worker
+    environment:
+      MQTT_BROKER: 80.225.236.160
+      MQTT_PORT: 1883
+      KAFKA_BOOTSTRAP: kafka:9092
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+
+  alarm-consumer:
+    build: .
+    command: python -m app.alarm_consumer
+    environment:
+      DATABASE_URL: sqlite:////data/dev.db
+      KAFKA_BOOTSTRAP: kafka:9092
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./data:/data
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+
+  sensor-consumer:
+    build: .
+    command: python -m app.sensor_consumer
+    environment:
+      DATABASE_URL: sqlite:////data/dev.db
+      KAFKA_BOOTSTRAP: kafka:9092
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./data:/data
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  
+

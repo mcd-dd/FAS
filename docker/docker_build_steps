@@ -1,0 +1,57 @@
+//save backend nginx conf in /etc/nginx/nginx.conf
+
+//save frontend nginx conf in /etc/nginx/conf.d/default.conf
+
+//from root i.e FAS
+
+docker compose up --build
+
+//Front end
+
+http://localhost:3000
+
+//Back end
+
+http://localhost:8000
+
+
+//also add main.yaml
+
+/*
+Developer Push
+      ↓
+GitHub Actions
+      ↓
+Lint → Test → Build Images
+      ↓
+Push to DockerHub
+      ↓
+Server docker-compose pull
+      ↓
+Live Application
+*/
+
+//Modify the docker compose for FAS scalability of apis
+docker swarm init
+
+docker stack deploy -c docker-compose.yml fas
+
+
+docker service ls
+
+docker service ps fas_api
+
+
+/*
+Internet
+   ↓
+HTTPS (Nginx + SSL)
+   ↓
+Rate limiting
+   ↓
+JWT validation
+   ↓
+FastAPI
+   ↓
+PostgreSQL (private network)
+*/

@@ -1,0 +1,36 @@
+api.js install
+
+npm install axios
+npm install @react-native-async-storage/async-storage
+
+app.jsx install
+
+npm install @react-navigation/native
+npm install @react-navigation/native-stack
+npm install react-native-screens react-native-safe-area-context
+
+
+How This Connects to Backend
+
+Backend must run:
+
+	uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+	Use PC IP in api.js
+
+Axios interceptor attaches:
+
+	session-id: <admin session>
+
+Protected endpoints work via FastAPI Depends(get_current_user)
+
+
+
+
+📦 Build Android APK
+
+npm install -g eas-cli
+eas login
+eas build -p android --profile preview
+
+Download APK from Expo link.

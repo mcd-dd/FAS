@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "leaflet-routing-machine": "^3.2.12",
+    "react-leaflet-cluster": "^4.0.0"
+  }
+}
