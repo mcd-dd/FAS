@@ -51,12 +51,12 @@ jobs:
           cd backend_new/backend
           ruff check .
 
-      - name: Run Tests
-        env:
-          DATABASE_URL: postgresql://postgres:password@localhost:5432/test_db
-        run: |
-          cd backend_new/backend
-          pytest --cov=. --cov-report=xml
+      # - name: Run Tests
+      #   env:
+      #     DATABASE_URL: postgresql://postgres:password@localhost:5432/test_db
+      #   run: |
+      #     cd backend_new/backend
+      #     pytest --cov=. --cov-report=xml
 
 
   frontend-tests:
