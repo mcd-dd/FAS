@@ -3,13 +3,8 @@
 import asyncio
 import json
 import os
-from datetime import datetime
 
 from aiomqtt import Client, MqttError
-
-from app.db import SessionLocal
-from app.models import Device, SensorData
-from app.incidents import insert_incident_sync
 from confluent_kafka import Producer
 
 MQTT_BROKER = os.environ.get("MQTT_BROKER", "80.225.236.160")

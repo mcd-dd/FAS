@@ -1,15 +1,12 @@
 # app/main.py
 
 import asyncio
-import os
 import uuid
 from datetime import datetime
-from typing import List
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from app.db import init_db, SessionLocal
@@ -22,7 +19,7 @@ from app.models import (
 # from app.incidents import set_broadcaster
 from passlib.context import CryptContext
 
-from fastapi import Depends, Request
+from fastapi import Depends
 from app.session_manager import create_session, get_session
 
 from fastapi import Header
@@ -31,7 +28,6 @@ from app.redis_client import redis_client
 import json
 
 from app.broadcaster import Broadcaster
-from sqlalchemy import or_
 
 # import razorpay
 # import os

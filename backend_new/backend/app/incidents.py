@@ -7,8 +7,6 @@ from sqlalchemy.orm import Session
 
 from app.db import SessionLocal
 from app.models import Device, Incident, SensorData
-
-import asyncio
 from app.event_bus import publish_incident_event
 
 # # injected at runtime

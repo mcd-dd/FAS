@@ -2,7 +2,7 @@
 
 import uuid
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from app.redis_client import redis_client
 
 SESSION_TTL_SECONDS = 60 * 60 * 24  # 24 hours

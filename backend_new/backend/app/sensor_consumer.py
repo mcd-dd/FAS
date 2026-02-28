@@ -5,8 +5,6 @@ from app.models import SensorData, Device
 from app.db import init_db
 # from app.incidents import broadcaster, _event_loop
 import asyncio
-
-import asyncio
 from app.event_bus import publish_sensor_event
 
 init_db()  # 🔥 REQUIRED
