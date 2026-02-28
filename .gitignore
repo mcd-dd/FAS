@@ -1,5 +1,4 @@
 docker_hub
-docker_hub\
 docker_hub*
 .env
 *.env

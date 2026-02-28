@@ -577,7 +577,7 @@ def list_incidents(limit: int = 100, station_id: str | None = None, device_id: s
             # Access all
             q = q.filter(Incident.alarm_type.in_(["FIRE", "TEMP"]))
             q = q.filter(
-                Incident.escalated_to_nfs == True
+                Incident.escalated_to_nfs
             )
             pass
     
