@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, JSON, ForeignKe
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from .db import Base
-import time
 from datetime import datetime
 
 class User(Base):
