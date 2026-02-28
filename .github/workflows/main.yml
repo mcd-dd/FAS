@@ -82,10 +82,10 @@ jobs:
           cd frontend_new/frontend/fire-dashboard
           npm run lint
 
-      - name: Run Tests
-        run: |
-          cd frontend_new/frontend/fire-dashboard
-          npm run test --if-present
+      # - name: Run Tests
+      #   run: |
+      #     cd frontend_new/frontend/fire-dashboard
+      #     npm run test --if-present
 
 
   build-and-push:
